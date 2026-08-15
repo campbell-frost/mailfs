@@ -3,24 +3,24 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 
-	"github.com/campbell-frost/mailfs/internal/handler"
+	"github.com/campbell-frost/mailfs/internal/api"
+	"github.com/campbell-frost/mailfs/internal/index"
+	"github.com/campbell-frost/mailfs/internal/vault"
 )
 
-const addr = "localhost:1738"
-
 func main() {
-	mux := http.NewServeMux()
+	i, err := index.New("mailfs.db")
+	if err != nil {
+		log.Fatalf("failed to create index: %e", err)
+	}
+	defer i.Close()
 
-	mux.HandleFunc("/upload/", handler.UploadHandler)
+	v := vault.New(i, "tmp")
+
+	s := api.New(v)
+
+	addr := "localhost:1738"
 	fmt.Printf("server running on http://%v\n", addr)
-	log.Fatal(http.ListenAndServe(addr, cors(mux)))
-}
-
-func cors(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		h.ServeHTTP(w, r)
-	})
+	log.Fatal(s.Start(addr))
 }
