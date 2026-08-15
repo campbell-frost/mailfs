@@ -3,31 +3,36 @@ import { ref } from "vue";
 import Button from "@/components/ui/button/Button.vue";
 import { useDark, useToggle } from "@vueuse/core";
 import { Moon, Sun } from "@lucide/vue";
+import Input from "@/components/ui/input/Input.vue";
 
 const API_URL = "http://localhost:1738";
 
 const uploadLoading = ref(false);
 const uploadError = ref<string | undefined>();
-const uploadResult = ref<{ id: string }>();
 
 const isDark = useDark();
 const toggleDark = useToggle(isDark);
 
-const upload = async () => {
+const file = ref<File | null>();
+const inputKey = ref(0);
+
+const onFileChange = (e: Event) => {
+  file.value = (e.target as HTMLInputElement).files?.[0] ?? null;
+};
+
+const upload = async (file: File) => {
   uploadLoading.value = true;
+  const form = new FormData();
+  form.append("mailfs.file", file);
   try {
     const res = await fetch(`${API_URL}/upload/`, {
       method: "POST",
-      body: JSON.stringify({
-        id: "hi",
-      }),
+      body: form,
     });
 
     if (!res.ok) {
       throw new Error(`bad status: ${res.status}`);
     }
-
-    uploadResult.value = await res.json();
     uploadError.value = undefined;
   } catch (e) {
     uploadError.value = e instanceof Error ? e.message : String(e);
@@ -51,13 +56,24 @@ const upload = async () => {
         <Moon v-else />
       </Button>
     </div>
-    <div class="flex flex-col">
-      <Button @click="upload">upload</Button>
-      <div>
-        <p v-if="uploadLoading">Loading...</p>
-        <p v-if="uploadError">Error {{ uploadError }}</p>
-        <p v-if="uploadResult">Result {{ uploadResult }}</p>
-      </div>
+    <div class="flex items-center gap-2">
+      <Input
+        :key="inputKey"
+        type="file"
+        class="min-w-0 flex-1 text-sm"
+        :disabled="uploadLoading"
+        @change="onFileChange"
+      />
+      <Button
+        size="sm"
+        :disabled="!file || uploadLoading"
+        @click="file && upload(file)"
+      >
+        {{ uploadLoading ? "uploading..." : "upload" }}
+      </Button>
     </div>
+    <p v-if="uploadError" class="text-sm text-destructive">
+      {{ uploadError }}
+    </p>
   </main>
 </template>
