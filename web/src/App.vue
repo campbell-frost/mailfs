@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import Button from "@/components/ui/button/Button.vue";
 
 const API_URL = "http://localhost:1738";
 
@@ -32,8 +33,14 @@ const upload = async () => {
 </script>
 
 <template>
-  <button @click="upload">upload</button>
-  <p v-if="uploadLoading">Loading...</p>
-  <p v-if="uploadError">Error {{ uploadError }}</p>
-  <p v-if="uploadResult">Result {{ uploadResult }}</p>
+  <div class="min-h-screen flex items-center justify-center">
+    <div class="flex flex-col">
+      <Button @click="upload">upload</Button>
+      <div>
+        <p v-if="uploadLoading">Loading...</p>
+        <p v-if="uploadError">Error {{ uploadError }}</p>
+        <p v-if="uploadResult">Result {{ uploadResult }}</p>
+      </div>
+    </div>
+  </div>
 </template>

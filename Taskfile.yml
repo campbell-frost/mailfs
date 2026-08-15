@@ -1,0 +1,15 @@
+version: "3"
+
+tasks:
+  api:
+    cmds:
+      - go run ./cmd/mailfs
+  web:
+    dir: web
+    cmds:
+      - pnpm dev
+
+  dev:
+    deps:
+      - api
+      - web
