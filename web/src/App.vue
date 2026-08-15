@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import Button from "@/components/ui/button/Button.vue";
+import { useDark, useToggle } from "@vueuse/core";
+import { Moon, Sun } from "@lucide/vue";
 
 const API_URL = "http://localhost:1738";
 
 const uploadLoading = ref(false);
 const uploadError = ref<string | undefined>();
 const uploadResult = ref<{ id: string }>();
+
+const isDark = useDark();
+const toggleDark = useToggle(isDark);
 
 const upload = async () => {
   uploadLoading.value = true;
@@ -33,7 +38,19 @@ const upload = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center">
+  <main class="mx-auto max-w-2xl space-y-6 p-6">
+    <div class="flex items-center justify-between">
+      <h1 class="font-mono text-lg font-bold">mail.fs</h1>
+      <Button
+        size="icon-sm"
+        variant="ghost"
+        :title="isDark ? 'Switch to light' : 'Switch to dark'"
+        @click="toggleDark()"
+      >
+        <Sun v-if="isDark" />
+        <Moon v-else />
+      </Button>
+    </div>
     <div class="flex flex-col">
       <Button @click="upload">upload</Button>
       <div>
@@ -42,5 +59,5 @@ const upload = async () => {
         <p v-if="uploadResult">Result {{ uploadResult }}</p>
       </div>
     </div>
-  </div>
+  </main>
 </template>
