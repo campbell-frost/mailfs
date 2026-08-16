@@ -1,9 +1,8 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"path/filepath"
 )
@@ -23,15 +22,15 @@ func (s *Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer f.Close()
 
-	id, err := s.vault.Stage(context.Background(), filepath.Base(h.Filename), f)
+	id, err := s.vault.Stage(r.Context(), filepath.Base(h.Filename), f)
 	if err != nil {
 		http.Error(w, "failed to stage file", http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Printf("created temp file for %s, id: %s\n", h.Filename, id)
+	log.Printf("created temp file for %s, id: %s\n", h.Filename, id)
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(struct{}{})
+	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(map[string]string{"id": id})
 }

@@ -32,7 +32,7 @@ func (v *Vault) Stage(ctx context.Context, name string, r io.Reader) (string, er
 		return "", err
 	}
 
-	f := index.File{
+	f := index.FileInfo{
 		ID:        id,
 		Filename:  name,
 		Size:      size,
@@ -41,7 +41,7 @@ func (v *Vault) Stage(ctx context.Context, name string, r io.Reader) (string, er
 		TempPath:  v.tempDir,
 	}
 
-	err = v.index.CreateFile(ctx, f)
+	err = v.idx.CreateFileInfo(ctx, f)
 	if err != nil {
 		return "", err
 	}

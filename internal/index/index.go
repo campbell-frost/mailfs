@@ -3,6 +3,7 @@ package index
 import (
 	"database/sql"
 	_ "embed"
+	"errors"
 	"fmt"
 
 	_ "modernc.org/sqlite"
@@ -14,6 +15,8 @@ type Index struct {
 
 //go:embed schema.sql
 var schema string
+
+var ErrNotFound = errors.New("file not found")
 
 func New(path string) (*Index, error) {
 	db, err := initDB(path)

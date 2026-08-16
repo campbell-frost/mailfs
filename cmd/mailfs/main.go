@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/campbell-frost/mailfs/internal/api"
@@ -21,6 +20,6 @@ func main() {
 	s := api.New(v)
 
 	addr := "localhost:1738"
-	fmt.Printf("server running on http://%v\n", addr)
+	log.Printf("server running on http://%v\n", addr)
 	log.Fatal(s.Start(addr))
 }
