@@ -37,7 +37,7 @@ func (v *Vault) Stage(ctx context.Context, name string, r io.Reader) (string, er
 		Filename:  name,
 		Size:      size,
 		CreatedAt: time.Now(),
-		Status:    "pending",
+		Status:    index.StatusPending,
 		TempPath:  v.tempDir,
 	}
 
@@ -45,5 +45,5 @@ func (v *Vault) Stage(ctx context.Context, name string, r io.Reader) (string, er
 	if err != nil {
 		return "", err
 	}
-	return "", nil
+	return id, nil
 }

@@ -12,10 +12,6 @@ create table if not exists chunks (
     seq integer not null,
     size integer not null,
     sha256 text not null,
-    account text not null,
-    mailbox text not null,
-    uid integer not null,
-    uid_validity integer not null,
-    message_id text not null,
+    ref text not null,
     primary key (file_id, seq)
 );

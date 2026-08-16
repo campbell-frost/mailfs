@@ -4,9 +4,12 @@ import (
 	"log"
 
 	"github.com/campbell-frost/mailfs/internal/api"
+	"github.com/campbell-frost/mailfs/internal/gmail"
 	"github.com/campbell-frost/mailfs/internal/index"
 	"github.com/campbell-frost/mailfs/internal/vault"
 )
+
+const GMAIL_CHUNK_SIZE = 17 << 20
 
 func main() {
 	i, err := index.New("mailfs.db")
@@ -15,7 +18,9 @@ func main() {
 	}
 	defer i.Close()
 
-	v := vault.New(i, "tmp")
+	g := gmail.New(GMAIL_CHUNK_SIZE)
+
+	v := vault.New(i, g, "tmp")
 
 	s := api.New(v)
 

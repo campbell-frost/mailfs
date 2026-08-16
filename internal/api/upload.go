@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -33,6 +34,13 @@ func (s *Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("created temp file for %s, id: %s\n", name, id)
+
+	// enqueue job to persist file
+	go func(id string) {
+		if err := s.vault.Persist(context.Background(), id); err != nil {
+			log.Println("failed to upload file", err)
+		}
+	}(id)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)

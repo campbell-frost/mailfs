@@ -16,7 +16,14 @@ type Index struct {
 //go:embed schema.sql
 var schema string
 
-var ErrNotFound = errors.New("file not found")
+var ErrNotFound = errors.New("idx: file not found")
+
+const (
+	StatusPending    = "pending"
+	StatusProcessing = "processing"
+	StatusStored     = "stored"
+	StatusFailed     = "failed"
+)
 
 func New(path string) (*Index, error) {
 	db, err := initDB(path)

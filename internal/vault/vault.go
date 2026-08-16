@@ -1,15 +1,23 @@
 package vault
 
-import "github.com/campbell-frost/mailfs/internal/index"
+import (
+	"github.com/campbell-frost/mailfs/internal/gmail"
+	"github.com/campbell-frost/mailfs/internal/index"
+)
 
 type Vault struct {
-	idx     index.Index
+	idx     *index.Index
+	gmail   *gmail.Gmail
 	tempDir string
 }
 
-func New(index *index.Index, tempDir string) *Vault {
+func New(
+	index *index.Index,
+	gmail *gmail.Gmail,
+	tempDir string) *Vault {
 	return &Vault{
-		idx:     *index,
+		idx:     index,
+		gmail:   gmail,
 		tempDir: tempDir,
 	}
 }
