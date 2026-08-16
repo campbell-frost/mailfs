@@ -74,10 +74,15 @@ func (v *Vault) persistChunk(ctx context.Context, f *os.File, fi index.FileInfo,
 	}
 
 	sum := sha256.Sum256(data)
-	_ = hex.EncodeToString(sum[:])
+	sha := hex.EncodeToString(sum[:])
 
 	// put message to mailbox
-	// persist to index
 
-	return nil
+	return v.idx.AddChunk(ctx, index.Chunk{
+		FileID: fi.ID,
+		Seq:    seq,
+		Size:   len(data),
+		Sha256: sha,
+		Ref:    []byte{},
+	})
 }
