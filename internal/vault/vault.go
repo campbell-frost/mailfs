@@ -7,17 +7,17 @@ import (
 
 type Vault struct {
 	idx     *index.Index
-	gmail   *gmail.Gmail
+	gmail   *gmail.Client
 	tempDir string
 }
 
 func New(
 	index *index.Index,
-	gmail *gmail.Gmail,
+	client *gmail.Client,
 	tempDir string) *Vault {
 	return &Vault{
 		idx:     index,
-		gmail:   gmail,
+		gmail:   client,
 		tempDir: tempDir,
 	}
 }

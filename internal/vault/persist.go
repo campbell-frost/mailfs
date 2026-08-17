@@ -9,8 +9,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
+	"github.com/campbell-frost/mailfs/internal/gmail"
 	"github.com/campbell-frost/mailfs/internal/index"
+	"golang.org/x/sync/errgroup"
 )
 
 // Persist takes a staged file, chunks it according to the configured chunk limit,
@@ -44,17 +47,46 @@ func (v *Vault) Persist(ctx context.Context, id string) (err error) {
 
 	defer f.Close()
 
-	chunkSize := int64(v.gmail.MaxChunkSize())
+	chunkSize := int64(v.gmail.ChunkSize())
 	count := int((fi.Size + chunkSize - 1) / chunkSize)
 
 	if count == 0 {
 		return errors.New("no chunks to persist")
 	}
 
+	workers := min(v.gmail.Concurrency(), count)
+	start := time.Now()
+
+	log.Printf("persist start file=%s name=%q size=%d chunks=%d workers=%d",
+		fi.ID, fi.Filename, fi.Size, count, workers,
+	)
+
+	g, gCtx := errgroup.WithContext(ctx)
+	g.SetLimit(workers)
+
 	for seq := range count {
-		if err := v.persistChunk(ctx, f, fi, seq, chunkSize); err != nil {
-			return fmt.Errorf("chunk %d: %w", seq, err)
-		}
+		g.Go(func() (err error) {
+			defer func() {
+				if r := recover(); r != nil {
+					err = fmt.Errorf("chunk %d panicked: %v", seq, r)
+				}
+			}()
+
+			chunkStart := time.Now()
+
+			if err := v.persistChunk(gCtx, f, fi, seq, chunkSize); err != nil {
+				return fmt.Errorf("chunk %d: %w", seq, err)
+			}
+
+			log.Printf("persist chunk file=%s seq=%d of %d bytes=%d took=%s",
+				fi.ID, seq+1, count, chunkSize, time.Since(chunkStart).Round(time.Millisecond))
+			return nil
+
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return err
 	}
 
 	if err := v.idx.SetStatus(ctx, id, index.StatusStored); err != nil {
@@ -63,6 +95,9 @@ func (v *Vault) Persist(ctx context.Context, id string) (err error) {
 	if err := os.Remove(tempPath); err != nil {
 		log.Println("temp file not removed", err)
 	}
+
+	elapsed := time.Since(start).Round(time.Millisecond)
+	log.Printf("persist done  file=%s chunks=%d bytes=%d took=%s", fi.ID, count, fi.Size, elapsed)
 	return nil
 }
 
@@ -76,13 +111,22 @@ func (v *Vault) persistChunk(ctx context.Context, f *os.File, fi index.FileInfo,
 	sum := sha256.Sum256(data)
 	sha := hex.EncodeToString(sum[:])
 
-	// put message to mailbox
+	ref, err := v.gmail.Put(ctx, gmail.Chunk{
+		FileID: fi.ID,
+		Seq:    seq,
+		Size:   len(data),
+		Sha256: sha,
+		Data:   data,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to store chunk via gmail: %w", err)
+	}
 
 	return v.idx.AddChunk(ctx, index.Chunk{
 		FileID: fi.ID,
 		Seq:    seq,
 		Size:   len(data),
 		Sha256: sha,
-		Ref:    []byte{},
+		Ref:    ref,
 	})
 }
