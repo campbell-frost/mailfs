@@ -52,3 +52,28 @@ func (i *Index) SetStatus(ctx context.Context, id string, status string) error {
 	}
 	return nil
 }
+
+func (i *Index) Files() ([]FileInfo, error) {
+	q := `select id, filename, temp_path, size, status, created_at, (select count(*) from chunks where file_id = files.id)
+		 from files`
+	rows, err := i.db.Query(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	files := make([]FileInfo, 0)
+	for rows.Next() {
+		if rows.Err() != nil {
+			return nil, rows.Err()
+		}
+		var f FileInfo
+		var createdAt string
+		if err := rows.Scan(&f.ID, &f.Filename, &f.TempPath, &f.Size, &f.Status, &createdAt, &f.Chunks); err != nil {
+			return nil, err
+		}
+		f.CreatedAt, _ = time.Parse(time.RFC3339Nano, createdAt)
+		files = append(files, f)
+	}
+	return files, nil
+}
