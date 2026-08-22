@@ -1,29 +1,19 @@
 <script setup lang="ts">
-import Button from "@/components/ui/button/Button.vue";
-import { useDark, useToggle } from "@vueuse/core";
-import { Moon, Sun } from "@lucide/vue";
-import UploadFile from "./components/upload-file.vue";
-import ListFiles from "./components/list-files.vue";
+import UploadFile from "@/components/upload-file.vue";
+import ListFiles from "@/components/list-files.vue";
+import AppHeader from "@/components/app-header.vue";
+import type { FileInfo } from "@/lib/api";
+import { ref } from "vue";
 
-const isDark = useDark();
-const toggleDark = useToggle(isDark);
+const files = ref<FileInfo[]>([]);
+
+const handleUpload = (file: FileInfo) => files.value.push(file);
 </script>
 
 <template>
   <main class="mx-auto max-w-2xl space-y-6 p-6">
-    <div class="flex items-center justify-between">
-      <h1 class="font-mono text-lg font-bold">mail.fs</h1>
-      <Button
-        size="icon-sm"
-        variant="ghost"
-        :title="isDark ? 'Switch to light' : 'Switch to dark'"
-        @click="toggleDark()"
-      >
-        <Sun v-if="isDark" />
-        <Moon v-else />
-      </Button>
-    </div>
-    <UploadFile />
-    <ListFiles />
+    <AppHeader />
+    <UploadFile @upload="handleUpload" />
+    <ListFiles v-model="files" />
   </main>
 </template>

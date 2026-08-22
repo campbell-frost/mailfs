@@ -3,17 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 )
-
-type fileInfoResponse struct {
-	ID        string    `json:"id"`
-	Filename  string    `json:"filename"`
-	Size      int64     `json:"size"`
-	Status    string    `json:"status"`
-	CreatedAt time.Time `json:"createdAt"`
-	Chunks    int       `json:"chunks"`
-}
 
 func (s *Server) ListHandler(w http.ResponseWriter, r *http.Request) {
 	files, err := s.vault.ListFiles()

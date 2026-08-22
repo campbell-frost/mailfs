@@ -12,9 +12,9 @@ import (
 )
 
 // Stage creates a temp file on disk and creates a record in the sqlite db
-func (v *Vault) Stage(ctx context.Context, name string, r io.Reader) (string, error) {
+func (v *Vault) Stage(ctx context.Context, name string, r io.Reader) (index.FileInfo, error) {
 	if err := os.MkdirAll(v.tempDir, 0o755); err != nil {
-		return "", err
+		return index.FileInfo{}, err
 	}
 
 	id := uuid.NewString()
@@ -22,17 +22,17 @@ func (v *Vault) Stage(ctx context.Context, name string, r io.Reader) (string, er
 
 	tmp, err := os.Create(tempPath)
 	if err != nil {
-		return "", err
+		return index.FileInfo{}, err
 	}
 
 	defer tmp.Close()
 
 	size, err := io.Copy(tmp, r)
 	if err != nil {
-		return "", err
+		return index.FileInfo{}, err
 	}
 
-	f := index.FileInfo{
+	fi := index.FileInfo{
 		ID:        id,
 		Filename:  name,
 		Size:      size,
@@ -41,9 +41,9 @@ func (v *Vault) Stage(ctx context.Context, name string, r io.Reader) (string, er
 		TempPath:  v.tempDir,
 	}
 
-	err = v.idx.CreateFileInfo(ctx, f)
+	err = v.idx.CreateFileInfo(ctx, fi)
 	if err != nil {
-		return "", err
+		return index.FileInfo{}, err
 	}
-	return id, nil
+	return fi, nil
 }

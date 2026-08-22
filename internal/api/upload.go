@@ -27,24 +27,32 @@ func (s *Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	defer part.Close()
 
 	name := filepath.Base(part.FileName())
-	id, err := s.vault.Stage(r.Context(), name, part)
+	fi, err := s.vault.Stage(r.Context(), name, part)
 	if err != nil {
 		http.Error(w, "failed to stage file", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("created temp file for %s, id: %s\n", name, id)
+	log.Printf("created temp file for %s, id: %s\n", name, fi.ID)
 
 	// enqueue job to persist file
 	go func(id string) {
 		if err := s.vault.Persist(context.Background(), id); err != nil {
 			log.Println("failed to upload file", err)
 		}
-	}(id)
+	}(fi.ID)
 
+	out := fileInfoResponse{
+		ID: fi.ID,
+		Filename: fi.Filename,
+		Size: fi.Size,
+		CreatedAt: fi.CreatedAt,
+		Status: fi.Status,
+		Chunks: fi.Chunks,
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusAccepted)
-	json.NewEncoder(w).Encode(map[string]string{"id": id})
+	json.NewEncoder(w).Encode(out)
 }
 
 func findFilePart(mr *multipart.Reader, name string) (*multipart.Part, error) {

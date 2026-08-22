@@ -5,13 +5,17 @@ import { formatBytes } from "@/lib/utils";
 import ViewFile from "./view-file.vue";
 import { Button } from "@/components/ui/button";
 
-const files = ref<FileInfo[]>([]);
+const files = defineModel<FileInfo[]>({
+  default: () => [],
+});
+
 const isLoading = ref(false);
 const error = ref<Error | null>(null);
+
 const fetchFiles = async () => {
+  isLoading.value = true;
+  error.value = null;
   try {
-    isLoading.value = true;
-    error.value = null;
     files.value = await listFiles();
   } catch (e) {
     error.value = e instanceof Error ? e : new Error("An error occurred");
@@ -26,6 +30,10 @@ onMounted(fetchFiles);
 </script>
 
 <template>
+  <p v-if="isLoading">Loading...</p>
+  <p v-if="error" class="text-sm text-destructive">
+    {{ error }}
+  </p>
   <ul class="divide-y border-y text-sm">
     <li
       v-for="file in files"

@@ -57,3 +57,13 @@ func cors(h http.Handler) http.Handler {
 		h.ServeHTTP(w, r)
 	})
 }
+
+
+type fileInfoResponse struct {
+	ID        string    `json:"id"`
+	Filename  string    `json:"filename"`
+	Size      int64     `json:"size"`
+	Status    string    `json:"status"`
+	CreatedAt time.Time `json:"createdAt"`
+	Chunks    int       `json:"chunks"`
+}

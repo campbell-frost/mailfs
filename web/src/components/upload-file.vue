@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { uploadFile } from "@/lib/api";
+import { uploadFile, type FileInfo } from "@/lib/api";
 import { ref } from "vue";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+
+const emit = defineEmits<{
+  upload: [file: FileInfo];
+}>();
 
 const uploadLoading = ref(false);
 const uploadError = ref<string | undefined>();
@@ -18,11 +22,13 @@ const upload = async () => {
   if (!file.value) return;
   uploadLoading.value = true;
   try {
-    await uploadFile(file.value);
+    const fi = await uploadFile(file.value);
     uploadError.value = undefined;
+    emit("upload", fi);
   } catch (e) {
     uploadError.value = e instanceof Error ? e.message : String(e);
   } finally {
+    inputKey.value++;
     uploadLoading.value = false;
   }
 };

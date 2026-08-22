@@ -19,7 +19,7 @@ export const listFiles = async (): Promise<FileInfo[]> => {
   return await res.json();
 };
 
-export const uploadFile = async (file: File) => {
+export const uploadFile = async (file: File): Promise<FileInfo> => {
   const form = new FormData();
   form.append("mailfs.file", file);
 
@@ -31,6 +31,7 @@ export const uploadFile = async (file: File) => {
   if (!res.ok) {
     throw new Error(`bad status: ${res.status}`);
   }
+  return await res.json();
 };
 
 export const downloadFile = async (id: string): Promise<Response> => {
