@@ -9,7 +9,7 @@ export type FileInfo = {
   status: Status;
   createdAt: string;
   chunks: number;
-}
+};
 
 export const listFiles = async (): Promise<FileInfo[]> => {
   const res = await fetch(`${API_URL}/list/`);
