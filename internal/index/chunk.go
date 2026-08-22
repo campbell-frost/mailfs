@@ -19,3 +19,24 @@ func (i *Index) AddChunk(ctx context.Context, c Chunk) error {
 	)
 	return err
 }
+
+func (i *Index) Chunks(ctx context.Context, fileID string) ([]Chunk, error) {
+	q := `select * from chunks where file_id = ?`
+	rows, err := i.db.QueryContext(ctx, q, fileID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var chunks []Chunk
+	for rows.Next() {
+		if rows.Err() != nil {
+			return nil, rows.Err()
+		}
+		var c Chunk
+		if err := rows.Scan(&c.FileID, &c.Seq, &c.Size, &c.Sha256, &c.Ref); err != nil {
+			return nil, err
+		}
+		chunks = append(chunks, c)
+	}
+	return chunks, nil
+}

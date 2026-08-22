@@ -32,3 +32,11 @@ export const uploadFile = async (file: File) => {
     throw new Error(`bad status: ${res.status}`);
   }
 };
+
+export const downloadFile = async (id: string): Promise<Response> => {
+  const res = await fetch(`${API_URL}/download/${id}`);
+  if (!res.ok) {
+    throw new Error(`bad status: ${res.status}`);
+  }
+  return res;
+};

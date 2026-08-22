@@ -1,6 +1,8 @@
 package vault
 
 import (
+	"context"
+
 	"github.com/campbell-frost/mailfs/internal/gmail"
 	"github.com/campbell-frost/mailfs/internal/index"
 )
@@ -20,4 +22,12 @@ func New(
 		gmail:   client,
 		tempDir: tempDir,
 	}
+}
+
+func (v *Vault) ListFiles() ([]index.FileInfo, error) {
+	return v.idx.Files()
+}
+
+func (v *Vault) Lookup(ctx context.Context, id string) (index.FileInfo, error) {
+	return v.idx.Stat(ctx, id)
 }

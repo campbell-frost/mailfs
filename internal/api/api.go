@@ -31,6 +31,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *Server) routes() {
 	s.mux.HandleFunc("POST /upload/", s.UploadHandler)
 	s.mux.HandleFunc("GET /list/", s.ListHandler)
+	s.mux.HandleFunc("GET /download/{id}/", s.DownloadHandler)
 }
 
 func (s *Server) Start(addr string) error {
