@@ -32,6 +32,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("POST /upload/", s.UploadHandler)
 	s.mux.HandleFunc("GET /list/", s.ListHandler)
 	s.mux.HandleFunc("GET /download/{id}/", s.DownloadHandler)
+	s.mux.HandleFunc("DELETE /delete/{id}/", s.DeleteHandler)
 }
 
 func (s *Server) Start(addr string) error {

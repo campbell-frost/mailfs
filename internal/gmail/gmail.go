@@ -1,6 +1,7 @@
 package gmail
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -12,6 +13,7 @@ const (
 	defaultChunkSize = 17 << 20
 	defaultMailbox   = "mailfs"
 	defaultAddr      = "imap.gmail.com:993"
+	trash            = "[Gmail]/Trash"
 )
 
 type Client struct {
@@ -94,3 +96,24 @@ func (c *Client) Close() error {
 func (c *Client) ChunkSize() int64 { return c.cfg.Chunksize }
 
 func (*Client) Concurrency() int { return poolSize }
+
+
+func parseRef(b []byte) (ref, error) {
+	var r ref
+	if err := json.Unmarshal(b, &r); err != nil {
+		return ref{}, err
+	}
+	return r, nil
+}
+
+func parseRefs(raw [][]byte) ([]ref, error) {
+	refs := make([]ref, len(raw))
+	for i, b := range raw {
+		r, err := parseRef(b)
+		if err != nil {
+			return nil, err
+		}
+		refs[i] = r
+	}
+	return refs, nil
+}

@@ -77,3 +77,15 @@ func (i *Index) Files() ([]FileInfo, error) {
 	}
 	return files, nil
 }
+
+func (i *Index) Delete(ctx context.Context, id string) error {
+	cq := `delete from chunks where file_id = ?;`
+	_, err := i.db.ExecContext(ctx, cq, id)
+	if err != nil {
+		return err
+	}
+
+	fq := `delete from files where id = ?;`
+	_, err = i.db.ExecContext(ctx, fq, id)
+	return err
+}

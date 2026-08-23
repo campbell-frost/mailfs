@@ -6,7 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/mail"
@@ -16,8 +16,8 @@ import (
 )
 
 func (c *Client) Get(ctx context.Context, chunkRef []byte) ([]byte, error) {
-	var r ref
-	if err := json.Unmarshal(chunkRef, &r); err != nil {
+	r, err := parseRef(chunkRef)
+	if err != nil {
 		return nil, err
 	}
 
@@ -57,13 +57,14 @@ func (c *Client) Get(ctx context.Context, chunkRef []byte) ([]byte, error) {
 	return data, nil
 }
 
+var errNotFound = errors.New("chunk not found")
 
 func (c *Client) locate(cn *conn, r ref) (imap.UIDSet, error) {
 	if r.UID != 0 && r.UIDValidity == cn.uidValidity{
 		return imap.UIDSetNum(imap.UID(r.UID)), nil
 	}
 	if r.MessageID == "" {
-		return nil, fmt.Errorf("stale uid %d and no message id to fall back on", r.UID)
+		return nil, errNotFound
 	}
 	sc := &imap.SearchCriteria{
 		Header: []imap.SearchCriteriaHeaderField{
@@ -77,7 +78,7 @@ func (c *Client) locate(cn *conn, r ref) (imap.UIDSet, error) {
 
 	uids := data.AllUIDs()
 	if len(uids) == 0 {
-		return nil, fmt.Errorf("chunk not found %s", r.MessageID)
+		return nil, errNotFound
 	}
 
 	return imap.UIDSetNum(uids[0]), nil

@@ -41,3 +41,12 @@ export const downloadFile = async (id: string): Promise<Response> => {
   }
   return res;
 };
+
+export const deleteFile = async (id: string): Promise<void> => {
+  const res = await fetch(`${API_URL}/delete/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    throw new Error(`bad status: ${res.status} ${res.statusText}`);
+  }
+};

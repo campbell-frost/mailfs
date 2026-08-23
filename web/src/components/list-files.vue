@@ -2,8 +2,9 @@
 import { listFiles, type FileInfo } from "@/lib/api";
 import { onMounted, ref } from "vue";
 import { formatBytes } from "@/lib/utils";
-import ViewFile from "./view-file.vue";
+import ViewFile from "@/components/view-file.vue";
 import { Button } from "@/components/ui/button";
+import DeleteFile from "@/components/delete-file.vue";
 
 const files = defineModel<FileInfo[]>({
   default: () => [],
@@ -25,6 +26,14 @@ const fetchFiles = async () => {
 };
 
 const preview = ref<FileInfo | undefined>();
+const fileToDelete = ref<FileInfo | undefined>();
+
+const handleDelete = (id: string | undefined) => {
+  fileToDelete.value = undefined;
+  // id is undefined if the delete dialog was cancelled, dont remove the file from the UI.
+  if (id == null) return;
+  files.value = files.value.filter(f => f.id !== id);
+};
 
 onMounted(fetchFiles);
 </script>
@@ -34,7 +43,13 @@ onMounted(fetchFiles);
   <p v-if="error" class="text-sm text-destructive">
     {{ error }}
   </p>
-  <ul class="divide-y border-y text-sm">
+  <div
+    v-if="files.length === 0"
+    class="flex items-center justify-center border p-4 rounded-md"
+  >
+    <p>No files have been uploaded yet.</p>
+  </div>
+  <ul v-else class="divide-y border-y text-sm">
     <li
       v-for="file in files"
       :key="file.id"
@@ -47,7 +62,9 @@ onMounted(fetchFiles);
         </span>
       </div>
       <Button size="sm" @click="preview = file">View</Button>
+      <Button size="sm" @click="fileToDelete = file">Delete</Button>
     </li>
   </ul>
   <ViewFile :file="preview" @close="preview = undefined" />
+  <DeleteFile :file="fileToDelete" @close="handleDelete" />
 </template>
