@@ -2,3 +2,5 @@ node_modules
 tmp
 mailfs.db*
 .env
+
+__debug_bin*

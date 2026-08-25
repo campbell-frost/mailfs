@@ -1,15 +1,31 @@
 version: "3"
 
+vars:
+  DLV_PORT: '{{.DLV_PORT | default "2112"}}'
+
 tasks:
   api:
+    desc: Run the API
     cmds:
       - go run ./cmd/mailfs
+
+  api:debug:
+    desc: Run the API under a headless Delve and attach to :{{.DLV_PORT}}
+    cmds:
+      - |
+        trap 'kill -TERM $DLV 2>/dev/null' INT TERM
+        dlv debug ./cmd/mailfs --headless --listen=127.0.0.1:{{.DLV_PORT}} --api-version=2 --accept-multiclient --continue &
+        DLV=$!
+        wait $DLV
+        wait $DLV 2>/dev/null
+
   web:
     dir: web
     cmds:
       - pnpm dev
 
   dev:
-    deps:
-      - api
-      - web
+    deps: [api, web]
+
+  dev:debug:
+    deps: [api:debug, web]

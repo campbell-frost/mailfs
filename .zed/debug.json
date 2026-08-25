@@ -1,0 +1,19 @@
+[
+  {
+    "label": "mailfs API (launch)",
+    "adapter": "Delve",
+    "request": "launch",
+    "mode": "debug",
+    "program": "./cmd/mailfs",
+    "args": [],
+    "buildFlags": [],
+    "env": {},
+  },
+  {
+    "label": "mailfs API (attach :2112)",
+    "adapter": "Delve",
+    "request": "attach",
+    "mode": "remote",
+    "tcp_connection": { "host": "127.0.0.1", "port": 2112 },
+  },
+]
