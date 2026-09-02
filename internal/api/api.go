@@ -33,6 +33,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /list/", s.ListHandler)
 	s.mux.HandleFunc("GET /download/{id}/", s.DownloadHandler)
 	s.mux.HandleFunc("DELETE /delete/{id}/", s.DeleteHandler)
+	s.mux.HandleFunc("GET /status/{id}/", s.StatusHandler)
 }
 
 func (s *Server) Start(addr string) error {
@@ -58,7 +59,6 @@ func cors(h http.Handler) http.Handler {
 		h.ServeHTTP(w, r)
 	})
 }
-
 
 type fileInfoResponse struct {
 	ID        string    `json:"id"`

@@ -41,6 +41,16 @@ func (i *Index) Stat(ctx context.Context, id string) (FileInfo, error) {
 	return f, nil
 }
 
+func (i *Index) Status(ctx context.Context, id string) (string, error) {
+	var status string
+	q := "select status from files where id = ?"
+	err := i.db.QueryRowContext(ctx, q, id).Scan(&status)
+	if err != nil {
+		return "", err
+	}
+	return status, nil
+}
+
 func (i *Index) SetStatus(ctx context.Context, id string, status string) error {
 	q := `update files set status = ? where id = ?`
 	res, err := i.db.ExecContext(ctx, q, status, id)
