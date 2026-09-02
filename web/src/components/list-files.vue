@@ -5,6 +5,14 @@ import { formatBytes } from "@/lib/utils";
 import ViewFile from "@/components/view-file.vue";
 import { Button } from "@/components/ui/button";
 import DeleteFile from "@/components/delete-file.vue";
+import { Ellipsis, Eye, Trash2 } from "@lucide/vue";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu/index.ts";
 
 const files = defineModel<FileInfo[]>({
   default: () => [],
@@ -53,7 +61,7 @@ onMounted(fetchFiles);
     <li
       v-for="file in files"
       :key="file.id"
-      class="flex items-center gap-3 p-2"
+      class="group flex items-center gap-3 p-2"
     >
       <div class="flex min-w-0 flex-1 items-center gap-3">
         <span class="flex-1 font-medium">{{ file.filename }}</span>
@@ -61,8 +69,35 @@ onMounted(fetchFiles);
           {{ formatBytes(file.size) }}
         </span>
       </div>
-      <Button size="sm" @click="preview = file">View</Button>
-      <Button size="sm" @click="fileToDelete = file">Delete</Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <Button
+            variant="ghost"
+            size="icon"
+            class="size-7"
+            aria-label="File actions"
+          >
+            <Ellipsis />
+          </Button>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent align="end" class="w-36">
+          <DropdownMenuItem @select="preview = file">
+            <Eye class="mr-2 size-4" />
+            View
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem
+            class="text-destructive focus:text-destructive"
+            @select="fileToDelete = file"
+          >
+            <Trash2 class="mr-2 size-4" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </li>
   </ul>
   <ViewFile :file="preview" @close="preview = undefined" />
