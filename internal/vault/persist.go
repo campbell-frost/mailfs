@@ -47,8 +47,7 @@ func (v *Vault) Persist(ctx context.Context, id string) (err error) {
 
 	defer f.Close()
 
-	chunkSize := int64(v.gmail.ChunkSize())
-	count := int((fi.Size + chunkSize - 1) / chunkSize)
+	count := v.chunkCount(fi.Size)
 
 	if count == 0 {
 		return errors.New("no chunks to persist")
@@ -74,12 +73,12 @@ func (v *Vault) Persist(ctx context.Context, id string) (err error) {
 
 			chunkStart := time.Now()
 
-			if err := v.persistChunk(gCtx, f, fi, seq, chunkSize); err != nil {
+			if err := v.persistChunk(gCtx, f, fi, seq); err != nil {
 				return fmt.Errorf("chunk %d: %w", seq, err)
 			}
 
 			log.Printf("persist chunk file=%s seq=%d of %d bytes=%d took=%s",
-				fi.ID, seq+1, count, chunkSize, time.Since(chunkStart).Round(time.Millisecond))
+				fi.ID, seq+1, count, v.gmail.ChunkSize(), time.Since(chunkStart).Round(time.Millisecond))
 			return nil
 
 		})
@@ -101,7 +100,8 @@ func (v *Vault) Persist(ctx context.Context, id string) (err error) {
 	return nil
 }
 
-func (v *Vault) persistChunk(ctx context.Context, f *os.File, fi index.FileInfo, seq int, chunkSize int64) error {
+func (v *Vault) persistChunk(ctx context.Context, f *os.File, fi index.FileInfo, seq int) error {
+	chunkSize := v.gmail.ChunkSize()
 	off := int64(seq) * chunkSize
 	data := make([]byte, min(chunkSize, fi.Size-off))
 	if _, err := f.ReadAt(data, off); err != nil {

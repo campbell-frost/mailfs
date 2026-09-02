@@ -39,6 +39,7 @@ func (v *Vault) Stage(ctx context.Context, name string, r io.Reader) (index.File
 		CreatedAt: time.Now(),
 		Status:    index.StatusPending,
 		TempPath:  v.tempDir,
+		Chunks:    v.chunkCount(size),
 	}
 
 	err = v.idx.CreateFileInfo(ctx, fi)

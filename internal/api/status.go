@@ -2,12 +2,13 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
 type statusResponse struct {
-	Status string `json:"status"`
-	// ProcessedChunks int `json:"processedChunks"`
+	Status          string `json:"status"`
+	ProcessedChunks int    `json:"processedChunks"`
 }
 
 func (s *Server) StatusHandler(w http.ResponseWriter, r *http.Request) {
@@ -17,11 +18,17 @@ func (s *Server) StatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	st, err := s.vault.Status(r.Context(), id)
+	fs, err := s.vault.Status(r.Context(), id)
 	if err != nil {
+		log.Printf("status failed to get status %s, %e", id, err)
 		http.Error(w, "failed to get status", http.StatusBadRequest)
+		return
 	}
+	log.Printf("status id: %s status: %s processedChunks %d", id, fs.Status, fs.ProcessedChunks)
 
-	resp := statusResponse{Status: st}
+	resp := statusResponse{
+		Status:          fs.Status,
+		ProcessedChunks: fs.ProcessedChunks,
+	}
 	json.NewEncoder(w).Encode(resp)
 }

@@ -31,3 +31,8 @@ func (v *Vault) ListFiles() ([]index.FileInfo, error) {
 func (v *Vault) Lookup(ctx context.Context, id string) (index.FileInfo, error) {
 	return v.idx.Stat(ctx, id)
 }
+
+func (v *Vault) chunkCount(fileSize int64) int {
+	chunkSize := v.gmail.ChunkSize()
+	return int((fileSize + chunkSize - 1) / chunkSize)
+}

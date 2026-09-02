@@ -41,14 +41,28 @@ func (i *Index) Stat(ctx context.Context, id string) (FileInfo, error) {
 	return f, nil
 }
 
-func (i *Index) Status(ctx context.Context, id string) (string, error) {
-	var status string
-	q := "select status from files where id = ?"
-	err := i.db.QueryRowContext(ctx, q, id).Scan(&status)
-	if err != nil {
-		return "", err
+type FileStatus struct {
+	Status          string
+	ProcessedChunks int
+}
+
+func (i *Index) Status(ctx context.Context, id string) (FileStatus, error) {
+	var s FileStatus
+	const q = `
+	select 
+		f.status, 
+		(select count(*) from chunks where file_id = f.id)
+	from files f
+	where f.id = ?`
+
+	if err := i.db.QueryRowContext(ctx, q, id).Scan(&s.Status, &s.ProcessedChunks); err != nil {
+		return FileStatus{}, err
 	}
-	return status, nil
+
+	return FileStatus{
+		Status:          s.Status,
+		ProcessedChunks: s.ProcessedChunks,
+	}, nil
 }
 
 func (i *Index) SetStatus(ctx context.Context, id string, status string) error {

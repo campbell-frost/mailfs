@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { getStatus, uploadFile, type FileInfo } from "@/lib/api";
+import { getFileStatus, uploadFile, type FileInfo } from "@/lib/api";
 import { formatBytes } from "@/lib/utils";
 import {
   Attachment,
@@ -37,6 +37,9 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const fileState = ref<UploadState>("idle");
 const uploadError = ref<string>();
 
+const totalChunks = ref(0);
+const proccessedChunks = ref(0);
+
 const selectFile = () => fileInput.value?.click();
 const removeFile = () => {
   fileInput.value = null;
@@ -59,7 +62,7 @@ const upload = async () => {
 
   try {
     const fi = await uploadFile(file.value);
-
+    totalChunks.value = fi.chunks;
     await pollStatus(fi.id, 2000);
     emit("upload", fi);
   } catch (e) {
@@ -71,18 +74,19 @@ const upload = async () => {
 const pollStatus = async (id: string, ms: number) => {
   while (true) {
     try {
-      const status = await getStatus(id);
-      console.log(status);
-      switch (status) {
+      const fs = await getFileStatus(id);
+      switch (fs.status) {
         case "pending":
           fileState.value = "uploading";
           break;
 
         case "processing":
           fileState.value = "processing";
+          proccessedChunks.value = fs.processedChunks;
           break;
 
         case "stored":
+          proccessedChunks.value = 0;
           fileState.value = "done";
           file.value = null;
           return;
@@ -94,7 +98,8 @@ const pollStatus = async (id: string, ms: number) => {
 
         default:
           fileState.value = "error";
-          uploadError.value = `Unknown file status: ${status}`;
+          proccessedChunks.value = 0;
+          uploadError.value = `Unknown file status: ${fs.status}`;
           return;
       }
 
@@ -144,7 +149,10 @@ const fileIconClass = computed(() =>
     <AttachmentContent>
       <AttachmentTitle>{{ file.name }}</AttachmentTitle>
       <AttachmentDescription>
-        {{ formatBytes(file.size) }}
+        <span>{{ formatBytes(file.size) }}</span>
+        <span v-if="fileState !== 'idle'">
+          ({{ proccessedChunks }} / {{ totalChunks }}) chunks processed
+        </span>
       </AttachmentDescription>
     </AttachmentContent>
 

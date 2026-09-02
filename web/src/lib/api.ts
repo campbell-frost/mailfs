@@ -51,9 +51,12 @@ export const deleteFile = async (id: string): Promise<void> => {
   }
 };
 
-export type FileStatus = "pending" | "processing" | "stored" | "failed";
+export type FileStatus = {
+  status: "pending" | "processing" | "stored" | "failed";
+  processedChunks: number;
+};
 
-export const getStatus = async (id: string): Promise<FileStatus> => {
+export const getFileStatus = async (id: string): Promise<FileStatus> => {
   const res = await fetch(`${API_URL}/status/${id}`);
   if (!res.ok) {
     throw new Error(`bad status: ${res.status} ${res.statusText}`);
@@ -62,5 +65,5 @@ export const getStatus = async (id: string): Promise<FileStatus> => {
   const json = await res.json();
 
   // TODO: use zod to validate response
-  return json.status as FileStatus;
+  return json as FileStatus;
 };

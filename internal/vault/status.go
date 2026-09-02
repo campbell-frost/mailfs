@@ -1,7 +1,11 @@
 package vault
 
-import "context"
+import (
+	"context"
 
-func (v *Vault) Status(ctx context.Context, id string) (string, error) {
+	"github.com/campbell-frost/mailfs/internal/index"
+)
+
+func (v *Vault) Status(ctx context.Context, id string) (index.FileStatus, error) {
 	return v.idx.Status(ctx, id)
 }
