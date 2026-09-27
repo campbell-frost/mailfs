@@ -1,6 +1,17 @@
 package index
 
-import "context"
+import (
+	"context"
+	"database/sql"
+)
+
+type ChunkRepo struct {
+	db *sql.DB
+}
+
+func NewChunk(db *sql.DB) *ChunkRepo {
+	return &ChunkRepo{db: db}
+}
 
 type Chunk struct {
 	FileID string
@@ -10,19 +21,19 @@ type Chunk struct {
 	Ref    []byte
 }
 
-func (i *Index) AddChunk(ctx context.Context, c Chunk) error {
+func (cr *ChunkRepo) Add(ctx context.Context, c Chunk) error {
 	q := `insert or replace into chunks
 	      (file_id, seq, size, sha256, ref)
 	      values (?, ?, ?, ?, ?)`
-	_, err := i.db.ExecContext(ctx, q,
+	_, err := cr.db.ExecContext(ctx, q,
 		c.FileID, c.Seq, c.Size, c.Sha256, c.Ref,
 	)
 	return err
 }
 
-func (i *Index) Chunks(ctx context.Context, fileID string) ([]Chunk, error) {
+func (cr *ChunkRepo) Get(ctx context.Context, fileID string) ([]Chunk, error) {
 	q := `select * from chunks where file_id = ?`
-	rows, err := i.db.QueryContext(ctx, q, fileID)
+	rows, err := cr.db.QueryContext(ctx, q, fileID)
 	if err != nil {
 		return nil, err
 	}

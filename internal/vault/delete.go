@@ -6,7 +6,7 @@ import (
 )
 
 func (v *Vault) Delete(ctx context.Context, id string) error {
-	chunks, err := v.idx.Chunks(ctx, id)
+	chunks, err := v.idx.Chunk.Get(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -22,7 +22,7 @@ func (v *Vault) Delete(ctx context.Context, id string) error {
 	}
 	log.Printf("deleted %d chunks for %s", len(chunks), id)
 
-	if err := v.idx.Delete(ctx, id); err != nil {
+	if err := v.idx.File.Delete(ctx, id); err != nil {
 		log.Println("failed to delete index", err.Error())
 		return err
 	}

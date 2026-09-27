@@ -25,11 +25,11 @@ func New(
 }
 
 func (v *Vault) ListFiles() ([]index.FileInfo, error) {
-	return v.idx.Files()
+	return v.idx.File.List()
 }
 
 func (v *Vault) Lookup(ctx context.Context, id string) (index.FileInfo, error) {
-	return v.idx.Stat(ctx, id)
+	return v.idx.File.Get(ctx, id)
 }
 
 func (v *Vault) chunkCount(fileSize int64) int {

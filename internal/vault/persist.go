@@ -25,15 +25,15 @@ func (v *Vault) Persist(ctx context.Context, id string) (err error) {
 		}
 		if err != nil {
 			log.Println("persist failed", err)
-			v.idx.SetStatus(context.WithoutCancel(ctx), id, index.StatusFailed)
+			v.idx.File.SetStatus(context.WithoutCancel(ctx), id, index.StatusFailed)
 		}
 	}()
 
-	if err := v.idx.SetStatus(ctx, id, index.StatusProcessing); err != nil {
+	if err := v.idx.File.SetStatus(ctx, id, index.StatusProcessing); err != nil {
 		return err
 	}
 
-	fi, err := v.idx.Stat(ctx, id)
+	fi, err := v.idx.File.Get(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func (v *Vault) Persist(ctx context.Context, id string) (err error) {
 		return err
 	}
 
-	if err := v.idx.SetStatus(ctx, id, index.StatusStored); err != nil {
+	if err := v.idx.File.SetStatus(ctx, id, index.StatusStored); err != nil {
 		return err
 	}
 	if err := os.Remove(tempPath); err != nil {
@@ -122,7 +122,7 @@ func (v *Vault) persistChunk(ctx context.Context, f *os.File, fi index.FileInfo,
 		return fmt.Errorf("failed to store chunk via gmail: %w", err)
 	}
 
-	return v.idx.AddChunk(ctx, index.Chunk{
+	return v.idx.Chunk.Add(ctx, index.Chunk{
 		FileID: fi.ID,
 		Seq:    seq,
 		Size:   len(data),

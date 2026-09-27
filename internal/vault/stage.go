@@ -42,7 +42,7 @@ func (v *Vault) Stage(ctx context.Context, name string, r io.Reader) (index.File
 		Chunks:    v.chunkCount(size),
 	}
 
-	err = v.idx.CreateFileInfo(ctx, fi)
+	err = v.idx.File.Create(ctx, fi)
 	if err != nil {
 		return index.FileInfo{}, err
 	}

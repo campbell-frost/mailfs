@@ -7,10 +7,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func (v *Vault) Fetch(ctx context.Context, id string, w io.Writer) (error) {
+func (v *Vault) Fetch(ctx context.Context, id string, w io.Writer) error {
 	const readahead = 4
 
-	chunks, err := v.idx.Chunks(ctx, id)
+	chunks, err := v.idx.Chunk.Get(ctx, id)
 	if err != nil {
 		return err
 	}

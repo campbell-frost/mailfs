@@ -7,5 +7,5 @@ import (
 )
 
 func (v *Vault) Status(ctx context.Context, id string) (index.FileStatus, error) {
-	return v.idx.Status(ctx, id)
+	return v.idx.File.Status(ctx, id)
 }

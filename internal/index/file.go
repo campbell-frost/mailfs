@@ -7,6 +7,14 @@ import (
 	"time"
 )
 
+type FileRepo struct {
+	db *sql.DB
+}
+
+func NewFile(db *sql.DB) *FileRepo {
+	return &FileRepo{db: db}
+}
+
 type FileInfo struct {
 	ID        string
 	Filename  string
@@ -17,16 +25,16 @@ type FileInfo struct {
 	Chunks    int
 }
 
-func (i *Index) CreateFileInfo(ctx context.Context, f FileInfo) error {
+func (fr *FileRepo) Create(ctx context.Context, f FileInfo) error {
 	q := `insert into files (id, filename, temp_path, size, status, created_at) values (?, ?, ?, ?, ?, ?)`
-	_, err := i.db.ExecContext(ctx, q, f.ID, f.Filename, f.TempPath, f.Size, f.Status, f.CreatedAt.UTC().Format(time.RFC3339Nano))
+	_, err := fr.db.ExecContext(ctx, q, f.ID, f.Filename, f.TempPath, f.Size, f.Status, f.CreatedAt.UTC().Format(time.RFC3339Nano))
 	return err
 }
 
-func (i *Index) Stat(ctx context.Context, id string) (FileInfo, error) {
+func (fr *FileRepo) Get(ctx context.Context, id string) (FileInfo, error) {
 	var f FileInfo
 	var createdAt string
-	err := i.db.QueryRowContext(ctx,
+	err := fr.db.QueryRowContext(ctx,
 		`select id, filename, temp_path, size, status, created_at, (select count(*) from chunks where file_id = files.id)
 		 from files where id = ?`, id,
 	).Scan(&f.ID, &f.Filename, &f.TempPath, &f.Size, &f.Status, &createdAt, &f.Chunks)
@@ -46,16 +54,16 @@ type FileStatus struct {
 	ProcessedChunks int
 }
 
-func (i *Index) Status(ctx context.Context, id string) (FileStatus, error) {
+func (fr *FileRepo) Status(ctx context.Context, id string) (FileStatus, error) {
 	var s FileStatus
 	const q = `
-	select 
-		f.status, 
+	select
+		f.status,
 		(select count(*) from chunks where file_id = f.id)
 	from files f
 	where f.id = ?`
 
-	if err := i.db.QueryRowContext(ctx, q, id).Scan(&s.Status, &s.ProcessedChunks); err != nil {
+	if err := fr.db.QueryRowContext(ctx, q, id).Scan(&s.Status, &s.ProcessedChunks); err != nil {
 		return FileStatus{}, err
 	}
 
@@ -65,9 +73,9 @@ func (i *Index) Status(ctx context.Context, id string) (FileStatus, error) {
 	}, nil
 }
 
-func (i *Index) SetStatus(ctx context.Context, id string, status string) error {
+func (fr *FileRepo) SetStatus(ctx context.Context, id string, status string) error {
 	q := `update files set status = ? where id = ?`
-	res, err := i.db.ExecContext(ctx, q, status, id)
+	res, err := fr.db.ExecContext(ctx, q, status, id)
 	if err != nil {
 		return err
 	}
@@ -77,10 +85,10 @@ func (i *Index) SetStatus(ctx context.Context, id string, status string) error {
 	return nil
 }
 
-func (i *Index) Files() ([]FileInfo, error) {
+func (fr *FileRepo) List() ([]FileInfo, error) {
 	q := `select id, filename, temp_path, size, status, created_at, (select count(*) from chunks where file_id = files.id)
 		 from files`
-	rows, err := i.db.Query(q)
+	rows, err := fr.db.Query(q)
 	if err != nil {
 		return nil, err
 	}
@@ -102,14 +110,14 @@ func (i *Index) Files() ([]FileInfo, error) {
 	return files, nil
 }
 
-func (i *Index) Delete(ctx context.Context, id string) error {
+func (fr *FileRepo) Delete(ctx context.Context, id string) error {
 	cq := `delete from chunks where file_id = ?;`
-	_, err := i.db.ExecContext(ctx, cq, id)
+	_, err := fr.db.ExecContext(ctx, cq, id)
 	if err != nil {
 		return err
 	}
 
 	fq := `delete from files where id = ?;`
-	_, err = i.db.ExecContext(ctx, fq, id)
+	_, err = fr.db.ExecContext(ctx, fq, id)
 	return err
 }

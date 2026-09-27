@@ -10,7 +10,9 @@ import (
 )
 
 type Index struct {
-	db *sql.DB
+	db    *sql.DB
+	Chunk *ChunkRepo
+	File  *FileRepo
 }
 
 //go:embed schema.sql
@@ -33,7 +35,12 @@ func New(path string) (*Index, error) {
 	if _, err := db.Exec(schema); err != nil {
 		return nil, fmt.Errorf("apply schema: %w", err)
 	}
-	return &Index{db: db}, nil
+
+	return &Index{
+		db:    db,
+		File:  NewFile(db),
+		Chunk: NewChunk(db),
+	}, nil
 }
 
 func initDB(path string) (*sql.DB, error) {
