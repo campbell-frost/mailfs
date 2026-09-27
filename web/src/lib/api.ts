@@ -1,4 +1,4 @@
-export const API_URL = "http://localhost:1738";
+export const API_URL = "/api";
 
 export type Status = "pending" | "processing" | "stored" | "failed";
 

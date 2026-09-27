@@ -8,9 +8,8 @@ import (
 )
 
 type Server struct {
-	vault   *vault.Vault
-	mux     *http.ServeMux
-	handler http.Handler
+	vault *vault.Vault
+	mux   *http.ServeMux
 }
 
 func New(v *vault.Vault) *Server {
@@ -20,20 +19,19 @@ func New(v *vault.Vault) *Server {
 	}
 
 	s.routes()
-	s.handler = cors(s.mux)
 	return s
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.handler.ServeHTTP(w, r)
+	s.mux.ServeHTTP(w, r)
 }
 
 func (s *Server) routes() {
-	s.mux.HandleFunc("POST /upload/", s.UploadHandler)
-	s.mux.HandleFunc("GET /list/", s.ListHandler)
-	s.mux.HandleFunc("GET /download/{id}/", s.DownloadHandler)
-	s.mux.HandleFunc("DELETE /delete/{id}/", s.DeleteHandler)
-	s.mux.HandleFunc("GET /status/{id}/", s.StatusHandler)
+	s.mux.HandleFunc("POST /api/upload/", s.UploadHandler)
+	s.mux.HandleFunc("GET /api/list/", s.ListHandler)
+	s.mux.HandleFunc("GET /api/download/{id}/", s.DownloadHandler)
+	s.mux.HandleFunc("DELETE /api/delete/{id}/", s.DeleteHandler)
+	s.mux.HandleFunc("GET /api/status/{id}/", s.StatusHandler)
 }
 
 func (s *Server) Start(addr string) error {
@@ -44,20 +42,6 @@ func (s *Server) Start(addr string) error {
 		IdleTimeout:       60 * time.Second,
 	}
 	return svr.ListenAndServe()
-}
-
-func cors(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-
-		h.ServeHTTP(w, r)
-	})
 }
 
 type fileInfoResponse struct {
