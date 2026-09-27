@@ -15,3 +15,18 @@ create table if not exists chunks (
     ref text not null,
     primary key (file_id, seq)
 );
+
+create table if not exists users (
+    id integer primary key,
+    sub text not null unique,
+    email text not null,
+    name text not null,
+    created_at text not null
+);
+
+create table if not exists sessions (
+    token_hash blob primary key,
+    user_id integer not null references users(id) on delete cascade,
+    created_at text not null,
+    expires_at text not null
+);

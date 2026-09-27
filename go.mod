@@ -4,11 +4,13 @@ go 1.26.1
 
 require (
 	github.com/google/uuid v1.6.0
+	golang.org/x/oauth2 v0.37.0
 	golang.org/x/sync v0.22.0
 	modernc.org/sqlite v1.56.0
 )
 
 require (
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	github.com/emersion/go-message v0.18.2 // indirect
 	github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6 // indirect
 )

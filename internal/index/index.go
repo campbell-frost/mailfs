@@ -10,15 +10,17 @@ import (
 )
 
 type Index struct {
-	db    *sql.DB
-	Chunk *ChunkRepo
-	File  *FileRepo
+	db      *sql.DB
+	Chunk   *ChunkRepo
+	File    *FileRepo
+	User    *UserRepo
+	Session *SessionRepo
 }
 
 //go:embed schema.sql
 var schema string
 
-var ErrNotFound = errors.New("idx: file not found")
+var ErrNotFound = errors.New("idx: not found")
 
 const (
 	StatusPending    = "pending"
@@ -37,9 +39,11 @@ func New(path string) (*Index, error) {
 	}
 
 	return &Index{
-		db:    db,
-		File:  NewFile(db),
-		Chunk: NewChunk(db),
+		db:      db,
+		File:    NewFile(db),
+		Chunk:   NewChunk(db),
+		User:    NewUser(db),
+		Session: NewSession(db),
 	}, nil
 }
 

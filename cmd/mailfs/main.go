@@ -7,6 +7,7 @@ import (
 	"github.com/campbell-frost/mailfs/internal/api"
 	"github.com/campbell-frost/mailfs/internal/gmail"
 	"github.com/campbell-frost/mailfs/internal/index"
+	"github.com/campbell-frost/mailfs/internal/oauth"
 	"github.com/campbell-frost/mailfs/internal/vault"
 	"github.com/joho/godotenv"
 )
@@ -33,7 +34,13 @@ func main() {
 
 	v := vault.New(idx, c, "tmp")
 
-	s := api.New(v)
+	o := oauth.New(oauth.Config{
+		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
+		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		RedirectURL:  "http://localhost:5173/auth/google/callback",
+	})
+
+	s := api.New(v, idx, o)
 
 	addr := "localhost:1738"
 	log.Printf("server running on http://%s", addr)
